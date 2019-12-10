@@ -4,8 +4,8 @@
 #include <sys/time.h>
 #include <cuda.h>
 
-#define IMAGE_WIDTH 428
-#define IMAGE_HEIGHT 521
+#define IMAGE_WIDTH 521
+#define IMAGE_HEIGHT 428
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
@@ -23,13 +23,14 @@ void blur(int *d_R,int *d_G, int *d_B)
 {
   int x = (blockIdx.x * blockDim.x) + threadIdx.x;
   int y = (blockIdx.y * blockDim.y) + threadIdx.y;
-	if (x >= IMAGE_WIDTH || y >= IMAGE_HEIGHT) {
+	if (x >= IMAGE_HEIGHT || y >= IMAGE_WIDTH) {
+      // printf("%s\n", "Pixel out of bounds");
       return;
   }
   int myval = d_R[(IMAGE_WIDTH*x) + y];
   d_R[(IMAGE_WIDTH*x) + y] = d_R[(IMAGE_WIDTH*x) + y] / 2;
-  d_G[(IMAGE_WIDTH*x) + y] = d_G[(IMAGE_WIDTH*x) + y] / 2;
-  d_B[(IMAGE_WIDTH*x) + y] = d_B[(IMAGE_WIDTH*x) + y] / 2;
+  d_G[(IMAGE_WIDTH*x) + y] = d_G[(IMAGE_WIDTH*x) + y] / 3;
+  d_B[(IMAGE_WIDTH*x) + y] = d_B[(IMAGE_WIDTH*x) + y] / 4;
 }
 
 int main (int argc, const char * argv[]) {
@@ -79,11 +80,11 @@ int main (int argc, const char * argv[]) {
 		int flat_R[rowsize * colsize];
 		int flat_G[rowsize * colsize];
 		int flat_B[rowsize * colsize];
-		for (int row=0;row<rowsize;row++){
-			for (int col=0;col<colsize;col++){
-				flat_R[colsize*row+col] = R[row][col];
-				flat_G[colsize*row+col] = G[row][col];
-				flat_B[colsize*row+col] = B[row][col];
+		for (int row=0;row<colsize;row++){
+			for (int col=0;col<rowsize;col++){
+				flat_R[rowsize*row+col] = R[col][row];
+				flat_G[rowsize*row+col] = G[col][row];
+				flat_B[rowsize*row+col] = B[col][row];
 			}
 		}
 		int *d_R, *d_G, *d_B;
@@ -100,14 +101,10 @@ int main (int argc, const char * argv[]) {
 		dim3 dimBlock(numBlocksY,numBlocksX);
 		dim3 dimGrid(16, 16);
 
-
-    // Punch it chewie
 		blur<<<dimGrid, dimBlock>>>(d_R, d_G, d_B);
-
-
 		int *h_R, *h_G, *h_B;
 		h_R = (int *)malloc(size);
-		h_G = (int *)malloc(size);
+    h_G = (int *)malloc(size);
 		h_B = (int *)malloc(size);
 		cudaMemcpy(h_R, d_R, size, cudaMemcpyDeviceToHost);
 		cudaMemcpy(h_G, d_G, size, cudaMemcpyDeviceToHost);
@@ -117,11 +114,11 @@ int main (int argc, const char * argv[]) {
 		cudaFree(d_B);
 		gpuErrchk( cudaPeekAtLastError() );
 		gpuErrchk( cudaDeviceSynchronize() );
-		for (int row=0;row<rowsize;row++){
-			for (int col=0;col<colsize;col++){
-				R[row][col] = h_R[colsize*row+col];
-				G[row][col] = h_G[colsize*row+col];
-				B[row][col] = h_B[colsize*row+col];
+		for (int row=0;row<colsize;row++){
+			for (int col=0;col<rowsize;col++){
+				R[col][row] = h_R[rowsize*row+col];
+				G[col][row] = h_G[rowsize*row+col];
+				B[col][row] = h_B[rowsize*row+col];
 			}
 		}
 
