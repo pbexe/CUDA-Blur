@@ -43,7 +43,7 @@ int main (int argc, const char * argv[]) {
 	}
 	fclose(fp);
 
-	nblurs = 10;
+	nblurs = 20;
 	double t1=tim.tv_sec+(tim.tv_usec/1000000.0);
 	for(k=0;k<nblurs;k++){
 		for(row=0;row<rowsize;row++){

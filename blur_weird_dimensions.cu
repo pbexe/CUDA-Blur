@@ -34,47 +34,48 @@ void blur(int *d_R,int *d_G, int *d_B, int *d_Rnew, int *d_Gnew, int *d_Bnew)
   // x and y could be the wrong way round
   // \[(\w\+?-?\d?)\]\[(\w\+?-?\d?)\]
   // [(IMAGE_WIDTH*$1) + $2]
-  if (x != 0 && x != (IMAGE_WIDTH-1) && y != 0 && y != (IMAGE_HEIGHT-1)){
+  if (y != 0 && y != (IMAGE_WIDTH-1) && x != 0 && x != (IMAGE_HEIGHT-1)){
     d_Rnew[(IMAGE_WIDTH*x) + y] = (d_R[(IMAGE_WIDTH*x+1) + y]+d_R[(IMAGE_WIDTH*x-1) + y]+d_R[(IMAGE_WIDTH*x) + y+1]+d_R[(IMAGE_WIDTH*x) + y-1])/4;
     d_Gnew[(IMAGE_WIDTH*x) + y] = (d_G[(IMAGE_WIDTH*x+1) + y]+d_G[(IMAGE_WIDTH*x-1) + y]+d_G[(IMAGE_WIDTH*x) + y+1]+d_G[(IMAGE_WIDTH*x) + y-1])/4;
     d_Bnew[(IMAGE_WIDTH*x) + y] = (d_B[(IMAGE_WIDTH*x+1) + y]+d_B[(IMAGE_WIDTH*x-1) + y]+d_B[(IMAGE_WIDTH*x) + y+1]+d_B[(IMAGE_WIDTH*x) + y-1])/4;
+    // printf("%s\n", "Middle pixel");
   }
-  else if (x == 0 && y != 0 && y != (IMAGE_HEIGHT-1)){
+  else if (y == 0 && x != 0 && x != (IMAGE_HEIGHT-1)){
     d_Rnew[(IMAGE_WIDTH*x) + y] = (d_R[(IMAGE_WIDTH*x+1) + y]+d_R[(IMAGE_WIDTH*x) + y+1]+d_R[(IMAGE_WIDTH*x) + y-1])/3;
     d_Gnew[(IMAGE_WIDTH*x) + y] = (d_G[(IMAGE_WIDTH*x+1) + y]+d_G[(IMAGE_WIDTH*x) + y+1]+d_G[(IMAGE_WIDTH*x) + y-1])/3;
     d_Bnew[(IMAGE_WIDTH*x) + y] = (d_B[(IMAGE_WIDTH*x+1) + y]+d_B[(IMAGE_WIDTH*x) + y+1]+d_B[(IMAGE_WIDTH*x) + y-1])/3;
   }
-  else if (x == (IMAGE_WIDTH-1) && y != 0 && y != (IMAGE_HEIGHT-1)){
+  else if (y == (IMAGE_WIDTH-1) && x != 0 && x != (IMAGE_HEIGHT-1)){
     d_Rnew[(IMAGE_WIDTH*x) + y] = (d_R[(IMAGE_WIDTH*x-1) + y]+d_R[(IMAGE_WIDTH*x) + y+1]+d_R[(IMAGE_WIDTH*x) + y-1])/3;
     d_Gnew[(IMAGE_WIDTH*x) + y] = (d_G[(IMAGE_WIDTH*x-1) + y]+d_G[(IMAGE_WIDTH*x) + y+1]+d_G[(IMAGE_WIDTH*x) + y-1])/3;
     d_Bnew[(IMAGE_WIDTH*x) + y] = (d_B[(IMAGE_WIDTH*x-1) + y]+d_B[(IMAGE_WIDTH*x) + y+1]+d_B[(IMAGE_WIDTH*x) + y-1])/3;
   }
-  else if (y == 0 && x != 0 && x != (IMAGE_WIDTH-1)){
+  else if (x == 0 && y != 0 && y != (IMAGE_WIDTH-1)){
     d_Rnew[(IMAGE_WIDTH*x) + y] = (d_R[(IMAGE_WIDTH*x+1) + y]+d_R[(IMAGE_WIDTH*x-1) + y]+d_R[(IMAGE_WIDTH*x) + y+1])/3;
     d_Gnew[(IMAGE_WIDTH*x) + y] = (d_G[(IMAGE_WIDTH*x+1) + y]+d_G[(IMAGE_WIDTH*x-1) + y]+d_G[(IMAGE_WIDTH*x) + y+1])/3;
     d_Bnew[(IMAGE_WIDTH*x) + y] = (d_B[(IMAGE_WIDTH*x+1) + y]+d_B[(IMAGE_WIDTH*x-1) + y]+d_B[(IMAGE_WIDTH*x) + y+1])/3;
   }
-  else if (y == (IMAGE_HEIGHT-1) && x != 0 && x != (IMAGE_WIDTH-1)){
+  else if (x == (IMAGE_HEIGHT-1) && y != 0 && y != (IMAGE_WIDTH-1)){
     d_Rnew[(IMAGE_WIDTH*x) + y] = (d_R[(IMAGE_WIDTH*x+1) + y]+d_R[(IMAGE_WIDTH*x-1) + y]+d_R[(IMAGE_WIDTH*x) + y-1])/3;
     d_Gnew[(IMAGE_WIDTH*x) + y] = (d_G[(IMAGE_WIDTH*x+1) + y]+d_G[(IMAGE_WIDTH*x-1) + y]+d_G[(IMAGE_WIDTH*x) + y-1])/3;
     d_Bnew[(IMAGE_WIDTH*x) + y] = (d_B[(IMAGE_WIDTH*x+1) + y]+d_B[(IMAGE_WIDTH*x-1) + y]+d_B[(IMAGE_WIDTH*x) + y-1])/3;
   }
-  else if (x==0 &&y==0){
+  else if (y==0 &&x==0){
     d_Rnew[(IMAGE_WIDTH*x) + y] = (d_R[(IMAGE_WIDTH*x) + y+1]+d_R[(IMAGE_WIDTH*x+1) + y])/2;
     d_Gnew[(IMAGE_WIDTH*x) + y] = (d_G[(IMAGE_WIDTH*x) + y+1]+d_G[(IMAGE_WIDTH*x+1) + y])/2;
     d_Bnew[(IMAGE_WIDTH*x) + y] = (d_B[(IMAGE_WIDTH*x) + y+1]+d_B[(IMAGE_WIDTH*x+1) + y])/2;
   }
-  else if (x==0 &&y==(IMAGE_HEIGHT-1)){
+  else if (y==0 &&x==(IMAGE_HEIGHT-1)){
     d_Rnew[(IMAGE_WIDTH*x) + y] = (d_R[(IMAGE_WIDTH*x) + y-1]+d_R[(IMAGE_WIDTH*x+1) + y])/2;
     d_Gnew[(IMAGE_WIDTH*x) + y] = (d_G[(IMAGE_WIDTH*x) + y-1]+d_G[(IMAGE_WIDTH*x+1) + y])/2;
     d_Bnew[(IMAGE_WIDTH*x) + y] = (d_B[(IMAGE_WIDTH*x) + y-1]+d_B[(IMAGE_WIDTH*x+1) + y])/2;
   }
-  else if (x==(IMAGE_WIDTH-1) &&y==0){
+  else if (y==(IMAGE_WIDTH-1) &&x==0){
     d_Rnew[(IMAGE_WIDTH*x) + y] = (d_R[(IMAGE_WIDTH*x) + y+1]+d_R[(IMAGE_WIDTH*x-1) + y])/2;
     d_Gnew[(IMAGE_WIDTH*x) + y] = (d_G[(IMAGE_WIDTH*x) + y+1]+d_G[(IMAGE_WIDTH*x-1) + y])/2;
     d_Bnew[(IMAGE_WIDTH*x) + y] = (d_B[(IMAGE_WIDTH*x) + y+1]+d_B[(IMAGE_WIDTH*x-1) + y])/2;
   }
-  else if (x==(IMAGE_WIDTH-1) &&y==(IMAGE_HEIGHT-1)){
+  else if (y==(IMAGE_WIDTH-1) &&x==(IMAGE_HEIGHT-1)){
     d_Rnew[(IMAGE_WIDTH*x) + y] = (d_R[(IMAGE_WIDTH*x) + y-1]+d_R[(IMAGE_WIDTH*x-1) + y])/2;
     d_Gnew[(IMAGE_WIDTH*x) + y] = (d_G[(IMAGE_WIDTH*x) + y-1]+d_G[(IMAGE_WIDTH*x-1) + y])/2;
     d_Bnew[(IMAGE_WIDTH*x) + y] = (d_B[(IMAGE_WIDTH*x) + y-1]+d_B[(IMAGE_WIDTH*x-1) + y])/2;
