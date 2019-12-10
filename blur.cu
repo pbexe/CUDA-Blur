@@ -167,12 +167,14 @@ int main (int argc, const char * argv[]) {
     // Punch it Chewie
   	blur<<<dimGrid, dimBlock>>>(d_R, d_G, d_B, d_Rnew, d_Gnew, d_Bnew);
 
-
+    // Copy the modified values out of the GPU
   	cudaMemcpy(h_R, d_Rnew, size, cudaMemcpyDeviceToHost);
   	cudaMemcpy(h_G, d_Gnew, size, cudaMemcpyDeviceToHost);
   	cudaMemcpy(h_B, d_Bnew, size, cudaMemcpyDeviceToHost);
+    // Check for errors
   	gpuErrchk( cudaPeekAtLastError() );
   	gpuErrchk( cudaDeviceSynchronize() );
+    // Convert the 1D arrays back into 2D
   	for (int row=0;row<IMAGE_HEIGHT;row++){
   		for (int col=0;col<IMAGE_WIDTH;col++){
   			R[row][col] = h_R[IMAGE_WIDTH*row+col];
@@ -181,6 +183,7 @@ int main (int argc, const char * argv[]) {
   		}
   	}
   }
+  // Free up the allocated memory
   cudaFree(d_R);
   cudaFree(d_G);
   cudaFree(d_B);
