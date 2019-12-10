@@ -142,7 +142,7 @@ int main (int argc, const char * argv[]) {
   cudaMalloc((void **)&d_B, size);
   cudaMalloc((void **)&d_Rnew, size);
   cudaMalloc((void **)&d_Bnew, size);
-  cudaMalloc((void **)&d_Gnew, size);
+  cudaMalloc((void **)&d_Gnew, size);Z
   // Pointers to handle the output
   int *h_R, *h_G, *h_B;
   h_R = (int *)malloc(size);
@@ -193,6 +193,7 @@ int main (int argc, const char * argv[]) {
   free(h_R);
   free(h_G);
   free(h_B);
+  
 	gettimeofday(&tim, NULL);
 	double t2=tim.tv_sec+(tim.tv_usec/1000000.0);
 	printf("%.6lf seconds elapsed\n", t2-t1);
