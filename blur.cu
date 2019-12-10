@@ -115,7 +115,7 @@ int main (int argc, const char * argv[]) {
 	}
 	fclose(fp);
 
-	nblurs = 20;
+	nblurs = 10;
 	double t1=tim.tv_sec+(tim.tv_usec/1000000.0);
 
 	for(k=0;k<nblurs;k++){
@@ -160,6 +160,9 @@ int main (int argc, const char * argv[]) {
 		cudaFree(d_R);
 		cudaFree(d_G);
 		cudaFree(d_B);
+		cudaFree(d_Rnew);
+		cudaFree(d_Gnew);
+		cudaFree(d_Bnew);
 		gpuErrchk( cudaPeekAtLastError() );
 		gpuErrchk( cudaDeviceSynchronize() );
 		for (int row=0;row<IMAGE_HEIGHT;row++){
