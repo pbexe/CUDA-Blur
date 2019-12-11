@@ -21,5 +21,5 @@ with open('results.csv', 'w', newline='') as csvfile:
         times = []
         for _ in range(50):
             times.append(float(time_prog(i)))
-        print("Blurs:", i, statistics.stdev(times), "MEAN:", statistics.mean(times))
-        writer.writerow({'blurs': i, 'time': statistics.mean(times)})
+        print("Blurs:", i, statistics.stdev(times), "MEAN:", statistics.median(times))
+        writer.writerow({'blurs': i, 'time': statistics.median(times)})
