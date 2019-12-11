@@ -8,15 +8,6 @@
 #define IMAGE_HEIGHT 521
 #define IMAGE_WIDTH 428
 
-#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
-{
-   if (code != cudaSuccess)
-   {
-      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-      if (abort) exit(code);
-   }
-}
 
 __global__
 void blur(int *d_R, int *d_G, int *d_B, int *d_Rnew, int *d_Gnew, int *d_Bnew)
@@ -148,41 +139,45 @@ int main (int argc, const char * argv[]) {
   h_R = (int *)malloc(size);
   h_G = (int *)malloc(size);
   h_B = (int *)malloc(size);
+
+  // Flatten the 2D arrays to make them easier to handle with CUDA
+  for (int row=0;row<IMAGE_HEIGHT;row++){
+    for (int col=0;col<IMAGE_WIDTH;col++){
+      flat_R[IMAGE_WIDTH*row+col] = R[row][col];
+      flat_G[IMAGE_WIDTH*row+col] = G[row][col];
+      flat_B[IMAGE_WIDTH*row+col] = B[row][col];
+    }
+  }
+
+  // Copy these arrays to the GPU
+  cudaMemcpy(d_R, flat_R, size, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_G, flat_G, size, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_B, flat_B, size, cudaMemcpyHostToDevice);
+
   // Start the blur loop
   for(k=0;k<nblurs;k++){
-    // Flatten the 2D arrays to make them easier to handle with CUDA
-  	for (int row=0;row<IMAGE_HEIGHT;row++){
-  		for (int col=0;col<IMAGE_WIDTH;col++){
-  			flat_R[IMAGE_WIDTH*row+col] = R[row][col];
-  			flat_G[IMAGE_WIDTH*row+col] = G[row][col];
-  			flat_B[IMAGE_WIDTH*row+col] = B[row][col];
-  		}
-  	}
-    // Copy these arrays to the GPU
-  	cudaMemcpy(d_R, flat_R, size, cudaMemcpyHostToDevice);
-  	cudaMemcpy(d_G, flat_G, size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_B, flat_B, size, cudaMemcpyHostToDevice);
-
-
     // Punch it Chewie
   	blur<<<dimGrid, dimBlock>>>(d_R, d_G, d_B, d_Rnew, d_Gnew, d_Bnew);
-
-    // Copy the modified values out of the GPU
-  	cudaMemcpy(h_R, d_Rnew, size, cudaMemcpyDeviceToHost);
-  	cudaMemcpy(h_G, d_Gnew, size, cudaMemcpyDeviceToHost);
-  	cudaMemcpy(h_B, d_Bnew, size, cudaMemcpyDeviceToHost);
-    // Check for errors
-  	gpuErrchk( cudaPeekAtLastError() );
-  	gpuErrchk( cudaDeviceSynchronize() );
-    // Convert the 1D arrays back into 2D
-  	for (int row=0;row<IMAGE_HEIGHT;row++){
-  		for (int col=0;col<IMAGE_WIDTH;col++){
-  			R[row][col] = h_R[IMAGE_WIDTH*row+col];
-  			G[row][col] = h_G[IMAGE_WIDTH*row+col];
-  			B[row][col] = h_B[IMAGE_WIDTH*row+col];
-  		}
-  	}
+    // Copy the modified values to the original locations ready for a new iteration
+  	cudaMemcpy(d_R, d_Rnew, size, cudaMemcpyDeviceToDevice);
+  	cudaMemcpy(d_G, d_Gnew, size, cudaMemcpyDeviceToDevice);
+  	cudaMemcpy(d_B, d_Bnew, size, cudaMemcpyDeviceToDevice);
   }
+
+  // Copy the data off the GPU
+  cudaMemcpy(h_R, d_Rnew, size, cudaMemcpyDeviceToHost);
+  cudaMemcpy(h_G, d_Gnew, size, cudaMemcpyDeviceToHost);
+  cudaMemcpy(h_B, d_Bnew, size, cudaMemcpyDeviceToHost);
+
+  // Convert the 1D arrays back into 2D
+  for (int row=0;row<IMAGE_HEIGHT;row++){
+    for (int col=0;col<IMAGE_WIDTH;col++){
+      R[row][col] = h_R[IMAGE_WIDTH*row+col];
+      G[row][col] = h_G[IMAGE_WIDTH*row+col];
+      B[row][col] = h_B[IMAGE_WIDTH*row+col];
+    }
+  }
+
   // Free up the allocated memory
   cudaFree(d_R);
   cudaFree(d_G);
