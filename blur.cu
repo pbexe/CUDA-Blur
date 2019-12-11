@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <cuda.h>
+#include <stdlib.h>
 
 #define IMAGE_HEIGHT 521
 #define IMAGE_WIDTH 428
@@ -79,6 +80,8 @@ void blur(int *d_R, int *d_G, int *d_B, int *d_Rnew, int *d_Gnew, int *d_Bnew)
 }
 
 int main (int argc, const char * argv[]) {
+  struct timeval tim;
+	gettimeofday(&tim, NULL);
 	static int const maxlen = 200, rowsize = 521, colsize = 428, linelen = 12;
 	char str[maxlen], lines[5][maxlen];
 	FILE *fp, *fout;
@@ -86,10 +89,7 @@ int main (int argc, const char * argv[]) {
 	unsigned int h1, h2, h3;
 	char *sptr;
 	int R[rowsize][colsize], G[rowsize][colsize], B[rowsize][colsize];
-	int Rnew[rowsize][colsize], Gnew[rowsize][colsize], Bnew[rowsize][colsize];
 	int row = 0, col = 0, nblurs, lineno=0, k;
-	struct timeval tim;
-	gettimeofday(&tim, NULL);
 
 	fp = fopen("David.ps", "r");
 
@@ -118,7 +118,7 @@ int main (int argc, const char * argv[]) {
 	}
 	fclose(fp);
   // Number of blur iterations
-	nblurs = 20;
+	nblurs = atoi(argv[1]);
   // Start the timer
 	double t1=tim.tv_sec+(tim.tv_usec/1000000.0);
   // The size of the 1D arrays for the GPU
@@ -142,7 +142,7 @@ int main (int argc, const char * argv[]) {
   cudaMalloc((void **)&d_B, size);
   cudaMalloc((void **)&d_Rnew, size);
   cudaMalloc((void **)&d_Bnew, size);
-  cudaMalloc((void **)&d_Gnew, size);Z
+  cudaMalloc((void **)&d_Gnew, size);
   // Pointers to handle the output
   int *h_R, *h_G, *h_B;
   h_R = (int *)malloc(size);
@@ -193,10 +193,7 @@ int main (int argc, const char * argv[]) {
   free(h_R);
   free(h_G);
   free(h_B);
-  
-	gettimeofday(&tim, NULL);
-	double t2=tim.tv_sec+(tim.tv_usec/1000000.0);
-	printf("%.6lf seconds elapsed\n", t2-t1);
+
 	fout= fopen("DavidBlur.ps", "w");
 	for (k=0;k<nlines;k++) fprintf(fout,"\n%s", lines[k]);
 	fprintf(fout,"\n");
@@ -211,5 +208,8 @@ int main (int argc, const char * argv[]) {
 		}
 	}
 	fclose(fout);
-    return 0;
+  gettimeofday(&tim, NULL);
+	double t2=tim.tv_sec+(tim.tv_usec/1000000.0);
+	printf("%.6lf seconds elapsed\n", t2-t1);
+  return 0;
 }
