@@ -134,11 +134,6 @@ int main (int argc, const char * argv[]) {
   cudaMalloc((void **)&d_Rnew, size);
   cudaMalloc((void **)&d_Bnew, size);
   cudaMalloc((void **)&d_Gnew, size);
-  // Pointers to handle the output
-  int *h_R, *h_G, *h_B;
-  h_R = (int *)malloc(size);
-  h_G = (int *)malloc(size);
-  h_B = (int *)malloc(size);
 
   // Flatten the 2D arrays to make them easier to handle with CUDA
   for (int row=0;row<IMAGE_HEIGHT;row++){
@@ -165,16 +160,16 @@ int main (int argc, const char * argv[]) {
   }
 
   // Copy the data off the GPU
-  cudaMemcpy(h_R, d_Rnew, size, cudaMemcpyDeviceToHost);
-  cudaMemcpy(h_G, d_Gnew, size, cudaMemcpyDeviceToHost);
-  cudaMemcpy(h_B, d_Bnew, size, cudaMemcpyDeviceToHost);
+  cudaMemcpy(flat_R, d_Rnew, size, cudaMemcpyDeviceToHost);
+  cudaMemcpy(flat_G, d_Gnew, size, cudaMemcpyDeviceToHost);
+  cudaMemcpy(flat_B, d_Bnew, size, cudaMemcpyDeviceToHost);
 
   // Convert the 1D arrays back into 2D
   for (int row=0;row<IMAGE_HEIGHT;row++){
     for (int col=0;col<IMAGE_WIDTH;col++){
-      R[row][col] = h_R[IMAGE_WIDTH*row+col];
-      G[row][col] = h_G[IMAGE_WIDTH*row+col];
-      B[row][col] = h_B[IMAGE_WIDTH*row+col];
+      R[row][col] = flat_R[IMAGE_WIDTH*row+col];
+      G[row][col] = flat_G[IMAGE_WIDTH*row+col];
+      B[row][col] = flat_B[IMAGE_WIDTH*row+col];
     }
   }
 
@@ -185,9 +180,9 @@ int main (int argc, const char * argv[]) {
   cudaFree(d_Rnew);
   cudaFree(d_Gnew);
   cudaFree(d_Bnew);
-  free(h_R);
-  free(h_G);
-  free(h_B);
+  free(flat_R);
+  free(flat_G);
+  free(flat_B);
 
 	fout= fopen("DavidBlur.ps", "w");
 	for (k=0;k<nlines;k++) fprintf(fout,"\n%s", lines[k]);
