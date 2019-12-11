@@ -17,9 +17,9 @@ with open('results.csv', 'w', newline='') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
 
-    for i in range(1,100):
+    for i in range(10,310, 10):
         times = []
-        for _ in range(10):
+        for _ in range(50):
             times.append(float(time_prog(i)))
         print("Blurs:", i, statistics.stdev(times), "MEAN:", statistics.mean(times))
         writer.writerow({'blurs': i, 'time': statistics.mean(times)})
