@@ -15,12 +15,12 @@ void blur(int *d_R, int *d_G, int *d_B, int *d_Rnew, int *d_Gnew, int *d_Bnew)
   // Get the X and y coords of the pixel for this thread
   int x = (blockIdx.x * blockDim.x) + threadIdx.x;
   int y = (blockIdx.y * blockDim.y) + threadIdx.y;
-  
+
   // Stop the thread if it is not part of the image
   if (x >= IMAGE_WIDTH || y >= IMAGE_HEIGHT) {
     return;
   }
-  
+
   // Apply the box blur
   if (y != 0 && y != (IMAGE_HEIGHT-1) && x != 0 && x != (IMAGE_WIDTH-1)){
     d_Rnew[(IMAGE_WIDTH*y) + x] = (d_R[(IMAGE_WIDTH*(y+1)) + x]+d_R[(IMAGE_WIDTH*(y-1)) + x]+d_R[(IMAGE_WIDTH*y) + x+1]+d_R[(IMAGE_WIDTH*y) + x-1])/4;
@@ -67,7 +67,7 @@ void blur(int *d_R, int *d_G, int *d_B, int *d_Rnew, int *d_Gnew, int *d_Bnew)
     d_Gnew[(IMAGE_WIDTH*y) + x] = (d_G[(IMAGE_WIDTH*y) + x-1]+d_G[(IMAGE_WIDTH*(y-1)) + x])/2;
     d_Bnew[(IMAGE_WIDTH*y) + x] = (d_B[(IMAGE_WIDTH*y) + x-1]+d_B[(IMAGE_WIDTH*(y-1)) + x])/2;
   }
-  
+
 }
 
 int main (int argc, const char * argv[]) {
@@ -81,9 +81,9 @@ int main (int argc, const char * argv[]) {
   char *sptr;
   int R[rowsize][colsize], G[rowsize][colsize], B[rowsize][colsize];
   int row = 0, col = 0, nblurs, lineno=0, k;
-  
+
   fp = fopen("David.ps", "r");
-  
+
   while(! feof(fp))
   {
     fscanf(fp, "\n%[^\n]", str);
@@ -93,7 +93,7 @@ int main (int argc, const char * argv[]) {
         sscanf(sptr,"%2x",&h1);
         sscanf(sptr+2,"%2x",&h2);
         sscanf(sptr+4,"%2x",&h3);
-        
+
         if (col==colsize){
           col = 0;
           row++;
@@ -110,7 +110,7 @@ int main (int argc, const char * argv[]) {
   fclose(fp);
   // Number of blur iterations
   // nblurs = atoi(argv[1]); // Get iterations from argument
-  nblurs = 100;
+  nblurs = 20;
   // Start the timer
   double t1=tim.tv_sec+(tim.tv_usec/1000000.0);
   // The size of the 1D arrays for the GPU
@@ -135,7 +135,7 @@ int main (int argc, const char * argv[]) {
   cudaMalloc((void **)&d_Rnew, size);
   cudaMalloc((void **)&d_Bnew, size);
   cudaMalloc((void **)&d_Gnew, size);
-  
+
   // Flatten the 2D arrays to make them easier to handle with CUDA
   for (int row=0;row<IMAGE_HEIGHT;row++){
     for (int col=0;col<IMAGE_WIDTH;col++){
@@ -144,12 +144,12 @@ int main (int argc, const char * argv[]) {
       h_B[IMAGE_WIDTH*row+col] = B[row][col];
     }
   }
-  
+
   // Copy these arrays to the GPU
   cudaMemcpy(d_R, h_R, size, cudaMemcpyHostToDevice);
   cudaMemcpy(d_G, h_G, size, cudaMemcpyHostToDevice);
   cudaMemcpy(d_B, h_B, size, cudaMemcpyHostToDevice);
-  
+
   // Start the blur loop
   for(k=0;k<nblurs;k++){
     // Punch it Chewie
@@ -159,12 +159,12 @@ int main (int argc, const char * argv[]) {
     cudaMemcpy(d_G, d_Gnew, size, cudaMemcpyDeviceToDevice);
     cudaMemcpy(d_B, d_Bnew, size, cudaMemcpyDeviceToDevice);
   }
-  
+
   // Copy the data off the GPU
   cudaMemcpy(h_R, d_Rnew, size, cudaMemcpyDeviceToHost);
   cudaMemcpy(h_G, d_Gnew, size, cudaMemcpyDeviceToHost);
   cudaMemcpy(h_B, d_Bnew, size, cudaMemcpyDeviceToHost);
-  
+
   // Convert the 1D arrays back into 2D
   for (int row=0;row<IMAGE_HEIGHT;row++){
     for (int col=0;col<IMAGE_WIDTH;col++){
@@ -173,12 +173,12 @@ int main (int argc, const char * argv[]) {
       B[row][col] = h_B[IMAGE_WIDTH*row+col];
     }
   }
-  
+
   // Free up the allocated memory
   cudaFree(d_R); cudaFree(d_G); cudaFree(d_B);
   cudaFree(d_Rnew); cudaFree(d_Gnew); cudaFree(d_Bnew);
   free(h_R); free(h_G); free(h_B);
-  
+
   fout= fopen("DavidBlur.ps", "w");
   for (k=0;k<nlines;k++) fprintf(fout,"\n%s", lines[k]);
   fprintf(fout,"\n");
